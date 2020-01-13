@@ -98,7 +98,7 @@ const getProductObj = (product, category, vendor, tags) => {
     sku: product.code,
     stock_quantity: productStock,
     weight: product.weight,
-    mapped_category_name: [category].concat([vendor].concat(tags))
+    categories: [category].concat([vendor].concat(tags))
   };
 };
 
