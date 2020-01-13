@@ -1,7 +1,27 @@
 service: woo-commerce-sync-items
 
+provider:
+  name: aws
+  runtime: nodejs8.11
+  region: us-east-1
+
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - logs:CreateLogStream
+      - logs:PutLogEvents     
+    Resource:
+      - "*"
+
+  environment:
+    WOOCOMMERCE_URL: ${env.WOOCOMMERCE_URL}
+    WOOCOMMERCE_KEY: ${env.WOOCOMMERCE_KEY}
+    WOOCOMMERCE_SECRET: ${env.WOOCOMMERCE_SECRET}
+    ZAURU_EMAIL: ${env.ZAURU_EMAIL}
+    ZAURU_TOKEN: ${env.ZAURU_TOKEN}
+plugins:
+  - serverless-dotenv-plugin
+
 functions:
   syncWooCommerceWithZauru:
     handler: synchronizer.syncWooCommerceWithZauru
-    events:
-      - schedule: cron(* * * * *)

@@ -11,6 +11,7 @@ const api = new WooCommerceRestApi({
 
 // this will get the GIAN JSON with all the info to process
 const fetchZauruData = async () => {
+  console.log('STARTING');
   const response = await axios.get(
     'https://app.zauru.com/ecommerce/ecommerce_requests/get_items_for_ecommerce.json',
     {
@@ -20,7 +21,7 @@ const fetchZauruData = async () => {
       }
     }
   );
-  //   console.log('zauru: ', response.data);
+  console.log('zauru: ', response.data);
   return response.data;
 };
 
