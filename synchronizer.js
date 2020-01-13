@@ -39,6 +39,7 @@ const addOrUpdateCategory = async (category, parent) => {
           parent
         });
         console.log('Create response: ', createResponse.data);
+        return createResponse.data.id;
       } catch (ex) {
         console.log(
           `Failed in creating category ${category}: `,
@@ -54,6 +55,7 @@ const addOrUpdateCategory = async (category, parent) => {
           }
         );
         console.log('Update response: ', updateResponse.data);
+        return updateResponse.data.id;
       } catch (ex) {
         console.log(
           `Failed in updating category ${category}: `,
@@ -86,7 +88,7 @@ const isProductUpdated = (wooProduct, product) => {
 };
 
 // format that woocommerce recognizes
-const getProductObj = product => {
+const getProductObj = (product, category, vendor, tags) => {
   const productStock = product.stock === 'infinite' ? 1000000 : product.stock;
   const description = '<p>' + product.description + '</p>';
   return {
@@ -95,7 +97,8 @@ const getProductObj = product => {
     description,
     sku: product.code,
     stock_quantity: productStock,
-    weight: product.weight
+    weight: product.weight,
+    mapped_category_name: [category].concat([vendor].concat(tags))
   };
 };
 
@@ -107,28 +110,31 @@ const updateProducts = async zauru => {
       const existingProduct = (await api.get(`products?sku=${product.code}`))
         .data;
       console.log(`Product: ${product.name}, found: ${existingProduct.length}`);
+      // force Zauru vendor as WC category forcing parent category
+      const vendorId = await addOrUpdateCategory(product.vendor, 31);
+      let tags = [];
+      for (const tag of product.tags) {
+        // force Zauru tag as WC category forcing parent category
+        tags.push(await addOrUpdateCategory(tag, 30));
+      }
       try {
         if (existingProduct.length) {
           if (isProductUpdated(existingProduct[0], product)) {
             console.log('Product is updated. Updating on woocommerce');
             const updateResponse = await api.put(
               `products/${existingProduct[0].id}`,
-              getProductObj(product)
+              getProductObj(product, category, vendor, tags)
             );
             console.log('Update response: ', updateResponse.data);
           }
         } else {
-          await api.post('products', getProductObj(product));
-        }
-
-        // force Zauru vendor as WC category forcing parent category
-        await addOrUpdateCategory(product.vendor, 31);
-        for (const tag of product.tags) {
-          // force Zauru tag as WC category forcing parent category
-          await addOrUpdateCategory(tag, 30);
+          await api.post(
+            'products',
+            getProductObj(product, category, vendorId, tags)
+          );
         }
       } catch (ex) {
-        console.log('Failed in creating/updating product: ', ex.response.data);
+        console.log('Failed in creating/updating product: ', ex);
       }
     }
   }
