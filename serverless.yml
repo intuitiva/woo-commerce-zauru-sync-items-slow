@@ -1,4 +1,4 @@
-service: woo-commerce-sync-items # NOTE: update this with your service name
+service: woo-commerce-sync-items
 
 functions:
   syncWithZauru:
