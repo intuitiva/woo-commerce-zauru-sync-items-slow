@@ -1,0 +1,7 @@
+service: woo-commerce-sync-items # NOTE: update this with your service name
+
+functions:
+  syncWithZauru:
+    handler: synchronizer.syncWooCommerceWithZauru
+    events:
+      - schedule: cron(* * * * *)
