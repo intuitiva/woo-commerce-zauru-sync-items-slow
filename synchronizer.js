@@ -50,7 +50,7 @@ const findCreateOrUpdateCategory = async (category, parent) => {
         categoryId = createResponse.data.id;
       } catch (ex) {
         console.log(
-          `    Failed in creating category ${category}: `,
+          `   Failed in creating category ${category}: `,
           ex.response.data
         );
       }
@@ -62,7 +62,7 @@ const findCreateOrUpdateCategory = async (category, parent) => {
             parent
           }
         );
-        console.log('    Category updated');
+        console.log('   Category updated');
         categoryId = updateResponse.data.id;
       } catch (ex) {
         console.log(
@@ -71,7 +71,7 @@ const findCreateOrUpdateCategory = async (category, parent) => {
         );
       }
     } else {
-      console.log('     Category found');
+      console.log('   Category found');
       categoryId = wcCategories[0].id;
     }
     localCategories[category] = categoryId;
