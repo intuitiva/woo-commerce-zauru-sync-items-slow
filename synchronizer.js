@@ -108,20 +108,12 @@ const isProductUpdated = (wooProduct, item) => {
       wooImageName = src_filename.split('+')[0];
     }
   }
-<<<<<<< HEAD
-  let splitted_url = item.photo.image.url.split('/');
-  const itemImageName = splitted_url[splitted_url.length - 1].split('.')[0];
-
-=======
-  console.log(item.photo.image.url);
-  console.log(wooImageName);
   let itemImageName = '';
   if (item.photo.image.url) {
-    let tmp = item.photo.image.url.split('/');
-    itemImageName = tmp[tmp.length - 1].split('.')[0];
+    let splitted_url = item.photo.image.url.split('/');
+    itemImageName = splitted_url[splitted_url.length - 1].split('.')[0];
   }
-  console.log(itemImageName);
->>>>>>> 34509ab44cbc1d36042c28aa0759acd93ff8f1c1
+
   return (
     item.name !== wooProduct.name ||
     (item.price && item.price !== wooProduct.regular_price) ||
