@@ -99,7 +99,6 @@ const isProductUpdated = (wooProduct, item) => {
 
   let wooImageName = '';
   if (wooProduct.images.length > 0) {
-    console.log(wooProduct.images[0].src);
     let splitted_source = wooProduct.images[0].src.split('/');
     let src_filename = splitted_source[splitted_source.length - 1];
     if (src_filename.split('-').length > 1) {
@@ -155,7 +154,7 @@ const createOrUpdateProducts = async zauru => {
       const item = zauru[category][productKey];
       const wcProduct = (await wc_api.get(`products?sku=${item.code}`)).data;
       console.log(
-        ` Item: ${item.name} Code: ${item.code}, found: ${wcProduct.length}`
+        `***Item: ${item.name} Code: ${item.code}, found: ${wcProduct.length}`
       );
 
       // force Zauru category to propagate to woo commerce
