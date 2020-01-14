@@ -143,6 +143,7 @@ const getProductObj = (item, category, vendor, tags) => {
     regular_price: item.price,
     description,
     sku: item.code,
+    manage_stock: true,
     stock_quantity: productStock,
     weight: item.weight,
     categories,
