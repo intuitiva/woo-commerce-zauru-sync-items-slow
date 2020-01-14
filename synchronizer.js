@@ -2,16 +2,19 @@ require('dotenv').config();
 const axios = require('axios');
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 
-const api = new WooCommerceRestApi({
+const wc_api = new WooCommerceRestApi({
   url: process.env.WOOCOMMERCE_URL,
   consumerKey: process.env.WOOCOMMERCE_KEY,
   consumerSecret: process.env.WOOCOMMERCE_SECRET,
   version: 'wc/v3'
 });
 
+function onlyUnique(value, index, self) { 
+  return self.indexOf(value) === index;
+}
+
 // this will get the GIAN JSON with all the info to process
 const fetchZauruData = async () => {
-  console.log('STARTING', process.env.ZAURU_EMAIL, ' - ', process.env.ZAURU_TOKEN);
   const response = await axios.get(
     'https://app.zauru.com/ecommerce/ecommerce_requests/get_items_for_ecommerce.json',
     {
@@ -21,121 +24,115 @@ const fetchZauruData = async () => {
       }
     }
   );
-  console.log('zauru data retrieved');
   return response.data;
 };
 
 // function that will add or update category in woocommerce
 // it will force the parent category from the param into the woocommerce category
-const addOrUpdateCategory = async (category, parent) => {
-  console.log('Zauru category: ', category);
+const findCreateOrUpdateCategory = async (category, parent) => {
+  console.log('  creating/updating Zauru category: ', category);
   if (category) {
-    const wcCategories = (await api.get(`products/categories?name=${category}`))
-      .data;
+    const wcCategories = (await wc_api.get(`products/categories?name=${category}`)).data;
     if (!wcCategories.length) {
-      console.log(`category ${category} not found in woocommerce. Creating...`);
       try {
-        const createResponse = await api.post('products/categories', {
+        const createResponse = await wc_api.post('products/categories', {
           name: category,
           parent
         });
-        console.log('Created');
         return createResponse.data.id;
       } catch (ex) {
-        console.log(
-          `Failed in creating category ${category}: `,
-          ex.response.data
-        );
+        console.log(`    Failed in creating category ${category}: `, ex.response.data);
       }
     } else if (wcCategories[0].parent !== parent) {
       try {
-        const updateResponse = await api.put(
+        const updateResponse = await wc_api.put(
           `products/categories/${wcCategories[0].id}`,
           {
             parent
           }
         );
-        console.log('Updated');
+        console.log('    Category updated');
         return updateResponse.data.id;
       } catch (ex) {
         console.log(
-          `Failed in updating category ${category}: `,
+          `    Failed in updating category ${category}: `,
           ex.response.data
         );
       }
+    } else {
+      console.log('     Category fund');
+      return wcCategories[0].id;
     }
   }
 };
 
-// function that will see if Zauru category is in WooCommerce category from a parent
-const updateProductCategories = async zauru => {
-  for (const category of Object.keys(zauru)) {
-    await addOrUpdateCategory(category, 29);
-  }
-};
-
 // comparison from Zauru vs. WooCommerce skipping the categories
-const isProductUpdated = (wooProduct, product) => {
-  const productStock = product.stock === 'infinite' ? 1000000 : product.stock;
-  const description = '<p>' + product.description + '</p>';
+const isProductUpdated = (wooProduct, item) => {
+  const productStock = item.stock === 'infinite' ? 1000000 : item.stock;
+  const description = '<p>' + item.description + '</p>';
   return (
-    product.name !== wooProduct.name ||
-    (product.price && product.price !== wooProduct.regular_price) ||
+    item.name !== wooProduct.name ||
+    (item.price && item.price !== wooProduct.regular_price) ||
     description.trim() !== wooProduct.description.trim() ||
-    product.code !== wooProduct.sku ||
+    item.code !== wooProduct.sku ||
     productStock !== wooProduct.stock_quantity ||
-    (product.weight && product.weight !== wooProduct.weight)
+    (item.weight && item.weight !== wooProduct.weight)
   );
 };
 
 // format that woocommerce recognizes
-const getProductObj = (product, category, vendor, tags) => {
-  const productStock = product.stock === 'infinite' ? 1000000 : product.stock;
-  const description = '<p>' + product.description + '</p>';
+const getProductObj = (item, category, vendor, tags) => {
+  const productStock = item.stock === 'infinite' ? 1000000 : item.stock;
+  const description = '<p>' + item.description + '</p>';
   return {
-    name: product.name,
-    regular_price: product.price,
+    name: item.name,
+    regular_price: item.price,
     description,
-    sku: product.code,
+    sku: item.code,
     stock_quantity: productStock,
-    weight: product.weight,
-    categories: [category].concat([vendor].concat(tags))
+    weight: item.weight,
+    categories: [category].concat([vendor].concat(tags)).filter( onlyUnique )
   };
 };
 
 // this will update the products and the vendors and tags as categories
-const updateProducts = async zauru => {
+const createOrUpdateProducts = async zauru => {
   for (let category in zauru) {
     for (const productKey in zauru[category]) {
-      const product = zauru[category][productKey];
-      const existingProduct = (await api.get(`products?sku=${product.code}`))
-        .data;
-      console.log(`Product: ${product.name}, found: ${existingProduct.length}`);
+      const item = zauru[category][productKey];
+      const wcProduct = (await wc_api.get(`products?sku=${item.code}`)).data;
+      console.log(` Item: ${item.name}, found: ${wcProduct.length}`);
+
+      // force Zauru category to propagate to woo commerce
+      const categoryId = await findCreateOrUpdateCategory(item.vendor, 29);
       // force Zauru vendor as WC category forcing parent category
-      const vendorId = await addOrUpdateCategory(product.vendor, 31);
+      const vendor = await findCreateOrUpdateCategory(item.vendor, 31);
       let tags = [];
-      for (const tag of product.tags) {
+      for (const tag of item.tags) {
         // force Zauru tag as WC category forcing parent category
-        tags.push(await addOrUpdateCategory(tag, 30));
+        tags.push(await findCreateOrUpdateCategory(tag, 30));
       }
+
       try {
-        if (existingProduct.length) {
-          if (isProductUpdated(existingProduct[0], product)) {
-            console.log('Product is updated. Updating on woocommerce');
-            const updateResponse = await api.put(
-              `products/${existingProduct[0].id}`,
-              getProductObj(product, category, vendor, tags)
+        // actually update
+        if (wcProduct.length) {
+          if (isProductUpdated(wcProduct[0], item)) {
+            console.log('  Product vs Item found difference. Updating on woocommerce');
+            const updateResponse = await wc_api.put(
+              `products/${wcProduct[0].id}`,
+              getProductObj(item, categoryId, vendor, tags)
             );
-            console.log('Updated');
+            console.log('  Product Updated');
           }
+        // actually create
         } else {
-          await api.post(
+          await wc_api.post(
             'products',
-            getProductObj(product, category, vendorId, tags)
+            getProductObj(item, categoryId, vendor, tags)
           );
         }
       } catch (ex) {
-        console.log('Failed in creating/updating product: ', ex);
+        console.log('   Failed in creating/updating product: ', ex);
       }
     }
   }
@@ -144,11 +141,10 @@ const updateProducts = async zauru => {
 exports.syncWooCommerceWithZauru = async () => {
   try {
     const zauru = await fetchZauruData();
-    await updateProductCategories(zauru);
-    await updateProducts(zauru);
+    //console.log('ITEM CATEGORIES');
+    //await updateItemCategories(zauru);
+    await createOrUpdateProducts(zauru);
   } catch (ex) {
     console.log(`Failed in wooCommerce API: `, ex);
   }
 };
-
-// syncWooCommerceWithZauru();
