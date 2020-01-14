@@ -39,7 +39,7 @@ const addOrUpdateCategory = async (category, parent) => {
           name: category,
           parent
         });
-        console.log('Create response: ', createResponse.data);
+        console.log('Created');
         return createResponse.data.id;
       } catch (ex) {
         console.log(
@@ -55,7 +55,7 @@ const addOrUpdateCategory = async (category, parent) => {
             parent
           }
         );
-        console.log('Update response: ', updateResponse.data);
+        console.log('Updated');
         return updateResponse.data.id;
       } catch (ex) {
         console.log(
@@ -126,7 +126,7 @@ const updateProducts = async zauru => {
               `products/${existingProduct[0].id}`,
               getProductObj(product, category, vendor, tags)
             );
-            console.log('Update response: ', updateResponse.data);
+            console.log('Updated');
           }
         } else {
           await api.post(
@@ -141,7 +141,7 @@ const updateProducts = async zauru => {
   }
 };
 
-module.exports = syncWooCommerceWithZauru = async () => {
+exports.syncWooCommerceWithZauru = async () => {
   try {
     const zauru = await fetchZauruData();
     await updateProductCategories(zauru);
@@ -151,4 +151,4 @@ module.exports = syncWooCommerceWithZauru = async () => {
   }
 };
 
-syncWooCommerceWithZauru();
+// syncWooCommerceWithZauru();
