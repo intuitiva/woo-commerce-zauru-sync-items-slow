@@ -9,7 +9,7 @@ const wc_api = new WooCommerceRestApi({
   version: 'wc/v3'
 });
 
-function onlyUnique(value, index, self) { 
+function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
 
@@ -32,7 +32,9 @@ const fetchZauruData = async () => {
 const findCreateOrUpdateCategory = async (category, parent) => {
   console.log('  creating/updating Zauru category: ', category);
   if (category) {
-    const wcCategories = (await wc_api.get(`products/categories?name=${category}`)).data;
+    const wcCategories = (
+      await wc_api.get(`products/categories?name=${category}`)
+    ).data;
     if (!wcCategories.length) {
       try {
         const createResponse = await wc_api.post('products/categories', {
@@ -41,7 +43,10 @@ const findCreateOrUpdateCategory = async (category, parent) => {
         });
         return createResponse.data.id;
       } catch (ex) {
-        console.log(`    Failed in creating category ${category}: `, ex.response.data);
+        console.log(
+          `    Failed in creating category ${category}: `,
+          ex.response.data
+        );
       }
     } else if (wcCategories[0].parent !== parent) {
       try {
@@ -60,7 +65,7 @@ const findCreateOrUpdateCategory = async (category, parent) => {
         );
       }
     } else {
-      console.log('     Category fund');
+      console.log('     Category found');
       return wcCategories[0].id;
     }
   }
@@ -83,7 +88,12 @@ const isProductUpdated = (wooProduct, item) => {
 // format that woocommerce recognizes
 const getProductObj = (item, category, vendor, tags) => {
   const productStock = item.stock === 'infinite' ? 1000000 : item.stock;
-  const description = '<p>' + item.description + '</p>';
+  const description =
+    '<p>' + item.description.replace('\r\n', '<br/>') + '</p>';
+  let categories = [category].concat([vendor].concat(tags)).filter(onlyUnique);
+  categories = categories.map(cat => {
+    return { id: cat };
+  });
   return {
     name: item.name,
     regular_price: item.price,
@@ -91,7 +101,7 @@ const getProductObj = (item, category, vendor, tags) => {
     sku: item.code,
     stock_quantity: productStock,
     weight: item.weight,
-    categories: [category].concat([vendor].concat(tags)).filter( onlyUnique )
+    categories
   };
 };
 
@@ -117,14 +127,16 @@ const createOrUpdateProducts = async zauru => {
         // actually update
         if (wcProduct.length) {
           if (isProductUpdated(wcProduct[0], item)) {
-            console.log('  Product vs Item found difference. Updating on woocommerce');
+            console.log(
+              '  Product vs Item found difference. Updating on woocommerce'
+            );
             const updateResponse = await wc_api.put(
               `products/${wcProduct[0].id}`,
               getProductObj(item, categoryId, vendor, tags)
             );
             console.log('  Product Updated');
           }
-        // actually create
+          // actually create
         } else {
           await wc_api.post(
             'products',
@@ -132,7 +144,10 @@ const createOrUpdateProducts = async zauru => {
           );
         }
       } catch (ex) {
-        console.log('   Failed in creating/updating product: ', ex);
+        console.log(
+          '   Failed in creating/updating product: ',
+          ex.response.data
+        );
       }
     }
   }
