@@ -97,30 +97,20 @@ const isProductUpdated = (wooProduct, item) => {
   wooDescription = wooDescription.replace(new RegExp('</p>', 'g'), '');
   wooDescription = wooDescription.replace(new RegExp('<br/>', 'g'), '');
 
-  console.log(item.name !== wooProduct.name);
-  console.log(item.price && item.price !== wooProduct.regular_price);
-  console.log(description.trim() !== wooDescription.trim());
-  console.log(item.code !== wooProduct.sku);
-  console.log(productStock !== wooProduct.stock_quantity);
-  console.log(item.weight !== null && item.weight !== wooProduct.weight);
-
-  console.log(wooProduct.images.length);
   let wooImageName = '';
   if (wooProduct.images.length > 0) {
     console.log(wooProduct.images[0].src);
-    let tmp = wooProduct.images[0].src.split('/');
-    tmp = tmp[tmp.length - 1];
-    if (tmp.split('-').length > 1) {
-      wooImageName = tmp.split('-')[0];
+    let splitted_source = wooProduct.images[0].src.split('/');
+    let src_filename = splitted_source[splitted_source.length - 1];
+    if (src_filename.split('-').length > 1) {
+      wooImageName = src_filename.split('-')[0];
     } else {
-      wooImageName = tmp.split('+')[0];
+      wooImageName = src_filename.split('+')[0];
     }
   }
-  console.log(item.photo.image.url);
-  console.log(wooImageName);
-  let tmp = item.photo.image.url.split('/');
-  const itemImageName = tmp[tmp.length - 1].split('.')[0];
-  console.log(itemImageName);
+  let splitted_url = item.photo.image.url.split('/');
+  const itemImageName = splitted_url[splitted_url.length - 1].split('.')[0];
+
   return (
     item.name !== wooProduct.name ||
     (item.price && item.price !== wooProduct.regular_price) ||
