@@ -2,7 +2,8 @@ service: woo-commerce-sync-items
 
 provider:
   name: aws
-  runtime: nodejs8.11
+  runtime: nodejs12.x
+  timeout: 300
   region: us-east-1
 
   iamRoleStatements:
@@ -19,6 +20,10 @@ provider:
     WOOCOMMERCE_SECRET: ${env.WOOCOMMERCE_SECRET}
     ZAURU_EMAIL: ${env.ZAURU_EMAIL}
     ZAURU_TOKEN: ${env.ZAURU_TOKEN}
+    CATEGORY_PARENT_CATEGORY: ${env.CATEGORY_PARENT_CATEGORY}
+    VENDOR_PARENT_CATEGORY: ${env.VENDOR_PARENT_CATEGORY}
+    TAG_PARENT_CATEGORY: ${env.TAG_PARENT_CATEGORY}
+
 plugins:
   - serverless-dotenv-plugin
 

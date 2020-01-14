@@ -113,6 +113,8 @@ const isProductUpdated = (wooProduct, item) => {
     itemImageName = splitted_url[splitted_url.length - 1].split('.')[0];
   }
 
+  console.log(productStock);
+  console.log(wooProduct.stock_quantity);
   return (
     item.name !== wooProduct.name ||
     (item.price && item.price !== wooProduct.regular_price) ||
