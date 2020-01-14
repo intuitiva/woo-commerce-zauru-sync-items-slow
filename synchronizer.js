@@ -29,17 +29,24 @@ const fetchZauruData = async () => {
   return response.data;
 };
 
+const getCategoryKey = (category, parent) => category + '|' + parent;
+
 // function that will add or update category in woocommerce
 // it will force the parent category from the param into the woocommerce category
 const findCreateOrUpdateCategory = async (category, parent) => {
-  console.log('  creating/updating Zauru category: ', category, ' parent ', parent);
+  console.log(
+    '  creating/updating Zauru category: ',
+    category,
+    ' parent ',
+    parent
+  );
   if (category) {
     let categoryId = null;
-    if (localCategories[category]) {
-      return localCategories[category];
+    if (localCategories[getCategoryKey(category, parent)]) {
+      return localCategories[getCategoryKey(category, parent)];
     }
-    const wcCategories = (
-      await wc_api.get(`products/categories?name=${category}`)
+    let wcCategories = (
+      await wc_api.get(`products/categories?search=${category}`)
     ).data;
     if (!wcCategories.length) {
       try {
@@ -74,7 +81,7 @@ const findCreateOrUpdateCategory = async (category, parent) => {
       console.log('   Category found');
       categoryId = wcCategories[0].id;
     }
-    localCategories[category] = categoryId;
+    localCategories[getCategoryKey(category, parent)] = categoryId;
     return categoryId;
   }
 };
@@ -82,24 +89,28 @@ const findCreateOrUpdateCategory = async (category, parent) => {
 // comparison from Zauru vs. WooCommerce skipping the categories
 const isProductUpdated = (wooProduct, item) => {
   const productStock = item.stock === 'infinite' ? 1000000 : item.stock;
-  const description = '<p>' + item.description.replace('\r\n', '<br/>') + '</p>';
+  let description = item.description.replace(/ /g, '');
+  description = item.description.replace(/\s/g, '');
+  let wooDescription = wooProduct.description.replace(/ /g, '');
+  wooDescription = wooProduct.description.replace(/\s/g, '');
+  wooDescription = wooDescription.replace(new RegExp('<p>', 'g'), '');
+  wooDescription = wooDescription.replace(new RegExp('</p>', 'g'), '');
+  wooDescription = wooDescription.replace(new RegExp('<br/>', 'g'), '');
+
+  /*
   console.log(item.name !== wooProduct.name);
   console.log(item.price && item.price !== wooProduct.regular_price);
-  console.log('=======');
   console.log(description.trim());
-  console.log('-------');
-  console.log(wooProduct.description.trim());
-  console.log('........');
-  console.log(description.trim() !== wooProduct.description.trim());
+  console.log(wooDescription.trim());
+  console.log(description.trim() !== wooDescription.trim());
   console.log(item.code !== wooProduct.sku);
   console.log(productStock !== wooProduct.stock_quantity);
-  console.log(item.weight !== null && item.weight !== wooProduct.weight);
-  console.log('==============');
-  
+  console.log(item.weight && item.weight !== wooProduct.weight);
+  */
   return (
     item.name !== wooProduct.name ||
     (item.price && item.price !== wooProduct.regular_price) ||
-    description.trim() !== wooProduct.description.trim() ||
+    description.trim() !== wooDescription.trim() ||
     item.code !== wooProduct.sku ||
     productStock !== wooProduct.stock_quantity ||
     (item.weight !== null && item.weight !== wooProduct.weight)
@@ -110,7 +121,7 @@ const isProductUpdated = (wooProduct, item) => {
 const getProductObj = (item, category, vendor, tags) => {
   const productStock = item.stock === 'infinite' ? 1000000 : item.stock;
   const description =
-    '<p>' + item.description.replace('\r\n', '<br/>') + '</p>';
+    '<p>' + item.description.replace(new RegExp('\r\n', 'g'), '<br/>') + '</p>';
   let categories = [category].concat([vendor].concat(tags)).filter(onlyUnique);
   categories = categories.map(cat => {
     return { id: cat };
@@ -122,7 +133,8 @@ const getProductObj = (item, category, vendor, tags) => {
     sku: item.code,
     stock_quantity: productStock,
     weight: item.weight,
-    categories
+    categories,
+    images: [{ src: item.photo.image.square_600.url }]
   };
 };
 
