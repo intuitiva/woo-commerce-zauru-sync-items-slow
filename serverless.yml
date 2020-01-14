@@ -6,12 +6,12 @@ provider:
   region: us-east-1
 
   iamRoleStatements:
-  - Effect: Allow
-    Action:
-      - logs:CreateLogStream
-      - logs:PutLogEvents     
-    Resource:
-      - "*"
+    - Effect: Allow
+      Action:
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource:
+        - '*'
 
   environment:
     WOOCOMMERCE_URL: ${env.WOOCOMMERCE_URL}
@@ -24,4 +24,4 @@ plugins:
 
 functions:
   syncWooCommerceWithZauru:
-    handler: synchronizer.syncWooCommerceWithZauru
+    handler: 'synchronizer.syncWooCommerceWithZauru'
