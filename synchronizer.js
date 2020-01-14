@@ -160,6 +160,7 @@ const createOrUpdateProducts = async zauru => {
       );
 
       // force Zauru category to propagate to woo commerce
+<<<<<<< HEAD
       const categoryId = await findCreateOrUpdateCategory(category, process.env.CATEGORY_PARENT_CATEGORY);
       // force Zauru vendor as WC category forcing parent category
       const vendor = await findCreateOrUpdateCategory(item.vendor, process.env.VENDOR_PARENT_CATEGORY);
@@ -167,6 +168,23 @@ const createOrUpdateProducts = async zauru => {
       for (const tag of item.tags) {
         // force Zauru tag as WC category forcing parent category
         tags.push(await findCreateOrUpdateCategory(tag, process.env.TAG_PARENT_CATEGORY));
+=======
+      const categoryId = await findCreateOrUpdateCategory(
+        category,
+        process.env.CATEGORY_PARENT_CATEGORY
+      );
+      // force Zauru vendor as WC category forcing parent category
+      const vendor = await findCreateOrUpdateCategory(
+        item.vendor,
+        process.env.VENDOR_PARENT_CATEGORY
+      );
+      let tags = [];
+      for (const tag of item.tags) {
+        // force Zauru tag as WC category forcing parent category
+        tags.push(
+          await findCreateOrUpdateCategory(tag, process.env.TAG_PARENT_CATEGORY)
+        );
+>>>>>>> a2e1b67f5eb360df7a169c302ea37fb6ed7183c4
       }
 
       try {
