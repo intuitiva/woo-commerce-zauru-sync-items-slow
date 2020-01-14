@@ -118,8 +118,11 @@ const isProductUpdated = (wooProduct, item) => {
   }
   console.log(item.photo.image.url);
   console.log(wooImageName);
-  let tmp = item.photo.image.url.split('/');
-  const itemImageName = tmp[tmp.length - 1].split('.')[0];
+  let itemImageName = '';
+  if (item.photo.image.url) {
+    let tmp = item.photo.image.url.split('/');
+    itemImageName = tmp[tmp.length - 1].split('.')[0];
+  }
   console.log(itemImageName);
   return (
     item.name !== wooProduct.name ||
