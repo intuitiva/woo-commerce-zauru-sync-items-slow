@@ -34,7 +34,12 @@ const getCategoryKey = (category, parent) => category + '|' + parent;
 // function that will add or update category in woocommerce
 // it will force the parent category from the param into the woocommerce category
 const findCreateOrUpdateCategory = async (category, parent) => {
-  console.log('  fetching/creating/updating Zauru category: ', category, ' parent ', parent);
+  console.log(
+    '  fetching/creating/updating Zauru category: ',
+    category,
+    ' parent ',
+    parent
+  );
   if (category) {
     let categoryId = null;
     if (localCategories[getCategoryKey(category, parent)]) {
@@ -92,19 +97,30 @@ const isProductUpdated = (wooProduct, item) => {
   wooDescription = wooDescription.replace(new RegExp('</p>', 'g'), '');
   wooDescription = wooDescription.replace(new RegExp('<br/>', 'g'), '');
 
-  
   console.log(item.name !== wooProduct.name);
   console.log(item.price && item.price !== wooProduct.regular_price);
   console.log(description.trim() !== wooDescription.trim());
   console.log(item.code !== wooProduct.sku);
   console.log(productStock !== wooProduct.stock_quantity);
   console.log(item.weight !== null && item.weight !== wooProduct.weight);
-  
+
   console.log(wooProduct.images.length);
+  let wooImageName = '';
   if (wooProduct.images.length > 0) {
     console.log(wooProduct.images[0].src);
+    let tmp = wooProduct.images[0].src.split('/');
+    tmp = tmp[tmp.length - 1];
+    if (tmp.split('-').length > 1) {
+      wooImageName = tmp.split('-')[0];
+    } else {
+      wooImageName = tmp.split('+')[0];
+    }
   }
   console.log(item.photo.image.url);
+  console.log(wooImageName);
+  let tmp = item.photo.image.url.split('/');
+  const itemImageName = tmp[tmp.length - 1].split('.')[0];
+  console.log(itemImageName);
   return (
     item.name !== wooProduct.name ||
     (item.price && item.price !== wooProduct.regular_price) ||
@@ -112,8 +128,9 @@ const isProductUpdated = (wooProduct, item) => {
     item.code !== wooProduct.sku ||
     productStock !== wooProduct.stock_quantity ||
     (item.weight !== null && item.weight !== wooProduct.weight) ||
-    !(wooProduct.images.length == 0 && item.photo.image.url == null) ||
-    wooProduct.images.length > 0 && wooProduct.images[0].src != item.photo.image.url
+    (wooProduct.images.length > 0
+      ? wooImageName !== itemImageName
+      : item.photo.image.url !== null)
   );
 };
 
@@ -144,7 +161,9 @@ const createOrUpdateProducts = async zauru => {
     for (const productKey in zauru[category]) {
       const item = zauru[category][productKey];
       const wcProduct = (await wc_api.get(`products?sku=${item.code}`)).data;
-      console.log(` Item: ${item.name} Code: ${item.code}, found: ${wcProduct.length}`);
+      console.log(
+        ` Item: ${item.name} Code: ${item.code}, found: ${wcProduct.length}`
+      );
 
       // force Zauru category to propagate to woo commerce
       const categoryId = await findCreateOrUpdateCategory(category, 29);
@@ -160,7 +179,9 @@ const createOrUpdateProducts = async zauru => {
         // actually update
         if (wcProduct.length) {
           if (isProductUpdated(wcProduct[0], item)) {
-            console.log('  Product != Item found difference. Updating on woocommerce');
+            console.log(
+              '  Product != Item found difference. Updating on woocommerce'
+            );
             const updateResponse = await wc_api.put(
               `products/${wcProduct[0].id}`,
               getProductObj(item, categoryId, vendor, tags)
@@ -177,7 +198,10 @@ const createOrUpdateProducts = async zauru => {
           );
         }
       } catch (ex) {
-        console.log('   Failed in creating/updating product: ',ex.response.data);
+        console.log(
+          '   Failed in creating/updating product: ',
+          ex.response.data
+        );
       }
     }
   }
