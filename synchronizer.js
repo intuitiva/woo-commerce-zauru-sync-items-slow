@@ -113,8 +113,6 @@ const isProductUpdated = (wooProduct, item) => {
     itemImageName = splitted_url[splitted_url.length - 1].split('.')[0];
   }
 
-  console.log(productStock);
-  console.log(wooProduct.stock_quantity);
   return (
     item.name !== wooProduct.name ||
     (item.price && item.price !== wooProduct.regular_price) ||
@@ -162,13 +160,13 @@ const createOrUpdateProducts = async zauru => {
       );
 
       // force Zauru category to propagate to woo commerce
-      const categoryId = await findCreateOrUpdateCategory(category, 29);
+      const categoryId = await findCreateOrUpdateCategory(category, process.env.CATEGORY_PARENT_CATEGORY);
       // force Zauru vendor as WC category forcing parent category
-      const vendor = await findCreateOrUpdateCategory(item.vendor, 31);
+      const vendor = await findCreateOrUpdateCategory(item.vendor, process.env.VENDOR_PARENT_CATEGORY);
       let tags = [];
       for (const tag of item.tags) {
         // force Zauru tag as WC category forcing parent category
-        tags.push(await findCreateOrUpdateCategory(tag, 30));
+        tags.push(await findCreateOrUpdateCategory(tag, process.env.TAG_PARENT_CATEGORY));
       }
 
       try {

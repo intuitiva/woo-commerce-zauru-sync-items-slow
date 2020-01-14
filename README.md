@@ -28,6 +28,9 @@ WOOCOMMERCE_KEY=ck_2439ujd9239fdsjklwe09ew
 WOOCOMMERCE_SECRET=cs_0128438nfi230238328k
 ZAURU_EMAIL=prueba@zauru.com
 ZAURU_TOKEN=45ERGDSFSLIU2332
+CATEGORY_PARENT_CATEGORY=29
+VENDOR_PARENT_CATEGORY=31
+TAG_PARENT_CATEGORY=30
 ```
 
 Si hay necesidad, estas variables se pueden editar desde la funcion lambda en la consola AWS.
