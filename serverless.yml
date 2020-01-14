@@ -30,4 +30,4 @@ functions:
   syncWooCommerceWithZauru:
     handler: 'synchronizer.syncWooCommerceWithZauru'
     events:
-      - schedule: cron(0 13-22 * * ? *)
+      - schedule: cron(0 14-23 * * ? *)
