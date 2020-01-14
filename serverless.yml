@@ -26,7 +26,6 @@ provider:
 
 plugins:
   - serverless-dotenv-plugin
-
 functions:
   syncWooCommerceWithZauru:
     handler: 'synchronizer.syncWooCommerceWithZauru'
