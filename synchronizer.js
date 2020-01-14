@@ -21,7 +21,7 @@ const fetchZauruData = async () => {
       }
     }
   );
-  console.log('zauru: ', response.data);
+  console.log('zauru data retrieved');
   return response.data;
 };
 
