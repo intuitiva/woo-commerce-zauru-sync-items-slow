@@ -122,7 +122,7 @@ const createOrUpdateProducts = async zauru => {
       console.log(` Item: ${item.name}, found: ${wcProduct.length}`);
 
       // force Zauru category to propagate to woo commerce
-      const categoryId = await findCreateOrUpdateCategory(item.vendor, 29);
+      const categoryId = await findCreateOrUpdateCategory(category, 29);
       // force Zauru vendor as WC category forcing parent category
       const vendor = await findCreateOrUpdateCategory(item.vendor, 31);
       let tags = [];
