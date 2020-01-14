@@ -137,6 +137,7 @@ const getProductObj = (item, category, vendor, tags) => {
   categories = categories.map(cat => {
     return { id: cat };
   });
+  const imageObj = item.photo.image.url ? { src: item.photo.image.url } : {};
   return {
     name: item.name,
     regular_price: item.price,
@@ -145,7 +146,7 @@ const getProductObj = (item, category, vendor, tags) => {
     stock_quantity: productStock,
     weight: item.weight,
     categories,
-    images: [{ src: item.photo.image.url }]
+    images: [imageObj]
   };
 };
 
