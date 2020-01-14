@@ -9,6 +9,8 @@ const wc_api = new WooCommerceRestApi({
   version: 'wc/v3'
 });
 
+let localCategories = {};
+
 function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
@@ -32,6 +34,10 @@ const fetchZauruData = async () => {
 const findCreateOrUpdateCategory = async (category, parent) => {
   console.log('  creating/updating Zauru category: ', category);
   if (category) {
+    let categoryId = null;
+    if (localCategories[category]) {
+      return localCategories[category];
+    }
     const wcCategories = (
       await wc_api.get(`products/categories?name=${category}`)
     ).data;
@@ -41,7 +47,7 @@ const findCreateOrUpdateCategory = async (category, parent) => {
           name: category,
           parent
         });
-        return createResponse.data.id;
+        categoryId = createResponse.data.id;
       } catch (ex) {
         console.log(
           `    Failed in creating category ${category}: `,
@@ -57,7 +63,7 @@ const findCreateOrUpdateCategory = async (category, parent) => {
           }
         );
         console.log('    Category updated');
-        return updateResponse.data.id;
+        categoryId = updateResponse.data.id;
       } catch (ex) {
         console.log(
           `    Failed in updating category ${category}: `,
@@ -66,8 +72,10 @@ const findCreateOrUpdateCategory = async (category, parent) => {
       }
     } else {
       console.log('     Category found');
-      return wcCategories[0].id;
+      categoryId = wcCategories[0].id;
     }
+    localCategories[category] = categoryId;
+    return categoryId;
   }
 };
 
