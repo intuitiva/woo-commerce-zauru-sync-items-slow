@@ -82,14 +82,27 @@ const findCreateOrUpdateCategory = async (category, parent) => {
 // comparison from Zauru vs. WooCommerce skipping the categories
 const isProductUpdated = (wooProduct, item) => {
   const productStock = item.stock === 'infinite' ? 1000000 : item.stock;
-  const description = '<p>' + item.description + '</p>';
+  const description = '<p>' + item.description.replace('\r\n', '<br/>') + '</p>';
+  console.log(item.name !== wooProduct.name);
+  console.log(item.price && item.price !== wooProduct.regular_price);
+  console.log('=======');
+  console.log(description.trim());
+  console.log('-------');
+  console.log(wooProduct.description.trim());
+  console.log('........');
+  console.log(description.trim() !== wooProduct.description.trim());
+  console.log(item.code !== wooProduct.sku);
+  console.log(productStock !== wooProduct.stock_quantity);
+  console.log(item.weight !== null && item.weight !== wooProduct.weight);
+  console.log('==============');
+  
   return (
     item.name !== wooProduct.name ||
     (item.price && item.price !== wooProduct.regular_price) ||
     description.trim() !== wooProduct.description.trim() ||
     item.code !== wooProduct.sku ||
     productStock !== wooProduct.stock_quantity ||
-    (item.weight && item.weight !== wooProduct.weight)
+    (item.weight !== null && item.weight !== wooProduct.weight)
   );
 };
 
