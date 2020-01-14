@@ -32,7 +32,7 @@ const fetchZauruData = async () => {
 // function that will add or update category in woocommerce
 // it will force the parent category from the param into the woocommerce category
 const findCreateOrUpdateCategory = async (category, parent) => {
-  console.log('  creating/updating Zauru category: ', category);
+  console.log('  creating/updating Zauru category: ', category, ' parent ', parent);
   if (category) {
     let categoryId = null;
     if (localCategories[category]) {
