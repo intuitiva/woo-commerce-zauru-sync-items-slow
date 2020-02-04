@@ -3,7 +3,7 @@ service: woo-commerce-sync-items
 provider:
   name: aws
   runtime: nodejs12.x
-  timeout: 300
+  timeout: 900
   region: us-east-1
 
   iamRoleStatements:
